@@ -3,6 +3,8 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
+using Nest;
 using PawfectAppCore.Models;
 using PawfectAppCore.Servers;
 
@@ -27,7 +29,10 @@ namespace PawfectAppCore
 
             builder.Services.AddSingleton<IMongoClient>(s =>
                            new MongoClient(builder.Configuration.GetValue<string>("MongoDB:ConnectionURI")));
-          
+            var settings = new Nest.ConnectionSettings()
+                                .DefaultMappingFor<TestUser>(x => x.IndexName("user"));
+            builder.Services.AddSingleton<IElasticClient>(new ElasticClient(settings));
+            
 
             builder.Services.AddScoped<IBaseUserService, BaseUserService>();
             builder.Services.AddScoped<IBreederUserService, BreederUserService>();
