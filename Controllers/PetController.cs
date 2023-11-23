@@ -2,7 +2,9 @@
 using MongoDB.Bson;
 using PawfectAppCore.Models;
 using PawfectAppCore.Servers;
+using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
+using System.Net;
 
 namespace PawfectAppCore.Controllers
 {
@@ -19,7 +21,17 @@ namespace PawfectAppCore.Controllers
         [HttpGet]
         public async Task<List<Pet>> GetAllPets()
         {
-            return await _petService.GetPetsAsync();
+            List<Pet> allPets = new List<Pet>();
+            List<Pet> nextSet;
+
+            do
+            {
+                nextSet = await _petService.GetPetsAsync();
+                allPets.AddRange(nextSet);
+            }
+            while (nextSet.Count == 20);
+
+            return allPets;
         }
 
         [HttpGet("{petId}")]
@@ -68,6 +80,31 @@ namespace PawfectAppCore.Controllers
             return matchPets;
         }
 
+        [HttpPost("GetPetNear")]
+        public async Task<List<Pet>> GetPetNear([FromBody] string location)
+        {
+            List<Pet> allPets = await _petService.GetPetsAsync();
+            List<Pet> nearPets = _petService.GetPetsNearMe(location, allPets);
+            return nearPets;
+        }
+
+        [HttpPost("SearchPets")]
+        public async Task<List<Pet>> PetSearching([FromBody] string userInput)
+        {
+
+            List<Pet> petSearch = new List<Pet>();
+            List<string> petIds = new List<string>();
+            petIds = _petService.PetSearchingModel(userInput);
+
+            foreach(string id in petIds)
+            {
+                var pet = await _petService.GetPetByPetIdAsync(id);
+                petSearch.Add(pet);
+            }
+
+            return petSearch;
+        }
+
         [HttpPost]
         public async Task<ActionResult<Pet>> AddPet(string userId, [FromBody] Pet pet)
         {
@@ -97,5 +134,7 @@ namespace PawfectAppCore.Controllers
             await _petService.DeletePetAsync(petId);
             return Ok("Remove pet");
         }
+
+
     }
 }

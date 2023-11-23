@@ -13,5 +13,7 @@ namespace PawfectAppCore.Servers
         public Task<Pet> AddPetAsync(string userId, Pet pet);
         public Task<Pet> UpdatePetAsync(string petId, Pet pet);
         public Task DeletePetAsync(string petId);
+        public List<string> PetSearchingModel(string userInput);
+        public List<Pet> GetPetsNearMe(string petLocation, List<Pet> allpets);
     }
 }
